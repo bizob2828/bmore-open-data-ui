@@ -1,0 +1,27 @@
+<div class="jumbotron">
+  <h1>Getting Started with AngularJS</h1>
+  <p class="lead">
+    <img src="{{user.image[1]['#text']}}">
+  </p>
+  <p>Last.fm stream with <a ng-href="{{user.url}}">{{user.name}}</a></p>
+</div>
+
+<div class="row marketing">
+  <h3>Top Artists for {{user.name}}</h3>
+  <ul class="thumbnails">
+    <li class="span4" ng-repeat="artist in topartists">
+      <a class="thumbnail" href="{{artist.url}}" title="{{artist.name}}" style="display: block;">
+        <div class="media">
+          <div class="pull-left" href="#">
+            <img class="media-object" src="{{artist.image[2]['#text']}}">
+          </div>
+          <div class="media-body">
+            <strong>{{artist.name}}</strong><br />
+            <em>Play Count: {{artist.playcount}}</em>
+          </div>
+        </div>
+      </a>
+    </li>
+  </ul>
+
+</div>
