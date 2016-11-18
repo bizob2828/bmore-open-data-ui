@@ -1,27 +1,65 @@
-<div class="jumbotron">
-  <h1>Getting Started with AngularJS</h1>
-  <p class="lead">
-    <img src="{{user.image[1]['#text']}}">
-  </p>
-  <p>Last.fm stream with <a ng-href="{{user.url}}">{{user.name}}</a></p>
+<div>
+  <div class="overlay-loading" ng-if="loading">
+    <div class="inner text-center">
+      <p class="fa fa-3x fa-spin fa-spinner"></p>
+      <p class="">Loading...</p>
+    </div>
+  </div>
 </div>
 
-<div class="row marketing">
-  <h3>Top Artists for {{user.name}}</h3>
-  <ul class="thumbnails">
-    <li class="span4" ng-repeat="artist in topartists">
-      <a class="thumbnail" href="{{artist.url}}" title="{{artist.name}}" style="display: block;">
-        <div class="media">
-          <div class="pull-left" href="#">
-            <img class="media-object" src="{{artist.image[2]['#text']}}">
-          </div>
-          <div class="media-body">
-            <strong>{{artist.name}}</strong><br />
-            <em>Play Count: {{artist.playcount}}</em>
-          </div>
+<div ng-class="{ blur: loading }" class="panel panel-default">
+<div class="panel-heading">
+  <div class="row">
+    <div class="col-sm-6">
+      <label>
+        Filter by Police Station
+        <input type="text" ng-model="selected" uib-typeahead="station.name for station in stations | filter:$viewValue | limitTo:8" class="form-control" typeahead-on-select="filterRestaurants($item)">
+      </label>
+    </div>
+    <div class="col-sm-6">
+      <button class="btn btn-primary pull-right" id="create-restaurant"><span>Create Restaurant</span></button>
+    </div>
+  </div>
+</div>
+<div class="panel-body">
+  <div class="row">
+    <ng-map default-style="true" center="{{center.lat}}, {{center.long}}" zoom="13">
+      <info-window id="rest-details">
+        <div ng-non-bindable="">
+          <h5>{{deets.name}}</h5>
+          <p>{{deets.address}} {{deets.zip}}<p>
+          <p>add link to edit here</p>
         </div>
-      </a>
-    </li>
-  </ul>
+      </info-window>
+      <marker id='{{restaurant.id}}' position="[{{restaurant.lat}},{{restaurant.long}}]"
+        ng-repeat="restaurant in restaurants"
+        on-click="showDetails(restaurant)">
+      </marker>
 
+    </ng-map>
+  </div>
+  <div class="row">
+    <ul uib-pagination total-items="restaurants.length" max-size="100" ng-model="currentPage" ng-change="pageChanged()"></ul>
+    <table class="table table-striped table-responsive">
+      <thead>
+        <tr>
+          <th ng-repeat="column in columns">
+            <span ng-click="toggleSort(column)">
+              <span>{{ column }}</span>
+              <i class="fa fa-sort-span" ng-class="setSort(column)"></i>
+            </span>
+          </th>
+        </tr>
+      </thead>
+      <tbody class="restaurant-details">
+        <tr ng-repeat="restaurant in restaurants | startFrom:(currentPage - 1) * 100 | limitTo:100">
+          <td ng-repeat="value in restaurant">
+            <span ng-if="value.name">{{value.name}}</span>
+            <span ng-if="!value.name">{{value}}</span>
+          </td>
+        </tr>
+       </tbody>
+    </table>
+  </div>
+</div>
 </div>

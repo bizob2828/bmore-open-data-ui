@@ -2,58 +2,80 @@
 
 /**
  * @ngdoc overview
- * @name angularMeetupApp
+ * @name restaurantApp
  * @description
- * # angularMeetupApp
+ * # restaurantApp
  *
- * Main module of the application.
+ *bbb Main module of the application.
  */
 angular
-  .module('angularMeetupApp', [
+  .module('restaurantApp', [
     'ngResource',
     'ngRoute',
-    'ngSanitize'
+    'ngSanitize',
+    'ngMap',
+    'ui.bootstrap'
   ])
-  .config(function ($routeProvider) {
+  .config(function ($routeProvider, $httpProvider) {
+    $httpProvider.defaults.useXDomain = true;
+    delete $httpProvider.defaults.headers.common['X-Requested-With'];
     $routeProvider
       .when('/', {
         templateUrl: 'views/main.html',
         controller: 'MainCtrl'
       })
-      .when('/about', {
-        templateUrl: 'views/about.html',
-        controller: 'AboutCtrl'
-      })
       .otherwise({
         redirectTo: '/'
       });
   })
-  .constant('lastFmCreds', {
-    user: 'bizob2828',
-    apiKey: 'a0c1594052516ddafa161aa969e52e20',
-    url: 'http://ws.audioscrobbler.com/2.0/'
+  .filter('startFrom', function() {
+    return function(input, start) {
+      if (input === undefined || input === null) {
+        return input;
+      }
+      start = _.parseInt(start);
+      return input.slice(start);
+    };
   })
-  .factory('topChartsService', function($http, lastFmCreds) {
+  .factory('restaurantsService', function($http, $q) {
+    delete $http.defaults.headers.common['X-Requested-With'];
     var service = {};
 
-    service.getTopArtists = function(cb) {
-      var params = {
-        method: 'user.getTopArtists',
-        api_key: lastFmCreds.apiKey,
-        limit: 12,
-        user: lastFmCreds.user,
-        format: 'json'
-      };
+    service.getRestaurants = function(page, stationId) {
+      var deferred = $q.defer()
+        , page = page || 1
+        , url = 'http://localhost:3000/api/restaurants?page=' + page;
 
-      $http.get(lastFmCreds.url, { params: params })
-          .success(function (data) {
-            service.data = data;
-          })
-          .error(function (data, status) {
-            service.error = data;
-          });
+      if(stationId) {
+        url += '&station_id=' + stationId;
+      }
 
-      };
+      $http.get(url)
+        .then(function (results) {
+          deferred.resolve(results.data.results);
+        })
+        .catch(function (data) {
+          deferred.reject(data);
+        });
+
+      return deferred.promise;
+
+    };
+
+    service.getStations = function() {
+      var deferred = $q.defer();
+      $http.get('http://localhost:3000/api/police-stations')
+        .then(function (results) {
+          deferred.resolve(results.data.results);
+        })
+        .catch(function (data) {
+          deferred.reject(data);
+        });
+
+      return deferred.promise;
+
+    };
+
       return service;
   });
 
