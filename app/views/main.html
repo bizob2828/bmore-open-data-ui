@@ -52,7 +52,7 @@
         </tr>
       </thead>
       <tbody class="restaurant-details">
-        <tr ng-repeat="restaurant in restaurants | startFrom:(currentPage - 1) * 100 | limitTo:100">
+        <tr ng-repeat="restaurant in restaurants">
           <td ng-repeat="value in restaurant">
             <span ng-if="value.name">{{value.name}}</span>
             <span ng-if="!value.name">{{value}}</span>

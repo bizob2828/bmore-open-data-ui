@@ -113,7 +113,7 @@ angular.module('restaurantApp')
     };
 
     $scope.pageChanged = function() {
-      restaurantsService.getRestaurants($scope.currentPage);
+      $scope.getRestaurants($scope.currentPage);
     };
 
     $scope.loading = true;
