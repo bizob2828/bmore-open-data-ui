@@ -44,6 +44,7 @@ angular.module('restaurantApp')
       .catch(function() {
         $scope.scrollTo();
         $scope.error = 'Unable to retrieve restaurants';
+        $scope.loading = false;
       });
 
     };
@@ -150,6 +151,7 @@ angular.module('restaurantApp')
         })
         .catch(function() {
           $scope.error = 'Unable to update restaurant';
+          $scope.loading = false;
         });
 
       } else {
@@ -161,6 +163,7 @@ angular.module('restaurantApp')
         })
         .catch(function() {
           $scope.error = 'Unable to create restaurant';
+          $scope.loading = false;
           $scope.scrollTo();
         });
       }
@@ -184,6 +187,7 @@ angular.module('restaurantApp')
       .catch(function() {
         $scope.scrollTo();
         $scope.error = 'Unable to delete restaurant';
+        $scope.loading = false;
       });
     };
 
