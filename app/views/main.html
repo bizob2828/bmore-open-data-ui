@@ -22,7 +22,7 @@
         <input id="station-filter" type="text" ng-model="selected" uib-typeahead="station.name for station in stations | filter:$viewValue" class="form-control" typeahead-on-select="filterRestaurants($item)">
     </div>
     <div class="col-sm-6">
-      <button class="btn btn-primary pull-right" id="create-restaurant" ng-click="showForm = true"><span>Create Restaurant</span></button>
+      <button class="btn btn-primary pull-right" id="create-restaurant" ng-click="createNew()"><span>Create Restaurant</span></button>
     </div>
   </div>
 </div>
@@ -56,12 +56,12 @@
 </div>
 <div class="panel-body">
   <div class="row">
-    <ng-map default-style="true" center="{{center.lat}}, {{center.long}}" zoom="15">
+    <ng-map default-style="true" center="{{center.lat}}, {{center.long}}" zoom="12">
       <info-window id="rest-details">
         <div ng-non-bindable="">
           <h5>{{deets.name}}</h5>
           <p>{{deets.address}} {{deets.zip}}<p>
-          <p>add link to edit here</p>
+          <button type="button" class="btn btn-sm btn-info" ng-click="editRestaurant(deets)">Edit Restaurant</button>
         </div>
       </info-window>
       <marker id='{{restaurant.id}}' position="[{{restaurant.lat}},{{restaurant.long}}]"

@@ -177,6 +177,11 @@ angular.module('restaurantApp')
       $scope.edit.station = $scope.edit.police_station.name;
     };
 
+    $scope.createNew = function() {
+      $scope.edit = {};
+      $scope.showForm = true;
+    };
+
     $scope.deleteRestaurant = function(restaurant) {
       $scope.loading = true;
       restaurantsService.deleteRestaurant(restaurant.id).then(function() {
