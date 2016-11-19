@@ -8,12 +8,12 @@
  * Controller of the restaurantApp
  */
 angular.module('restaurantApp')
-  .controller('MainCtrl', function ($scope, $http, restaurantsService, NgMap, $filter, $location, $anchorScroll) {
+  .controller('RestaurantsCtrl', function ($scope, $http, restaurants, stations, NgMap, $filter, $location, $anchorScroll) {
     var compareByAscending
       , compareByDescending;
 
 
-    restaurantsService.getStations().then(function(data) {
+    stations.all().then(function(data) {
       $scope.center = { lat: data[0].lat, long: data[0].long };
       $scope.stations = data;
 
@@ -29,7 +29,7 @@ angular.module('restaurantApp')
     $scope.getRestaurants = function(page, station) {
       var id = station ? station.id : undefined;
       $scope.loading = true;
-      restaurantsService.getRestaurants(page, id).then(function(data) {
+      restaurants.all(page, id).then(function(data) {
         if (station) {
           $scope.center = { lat: station.lat, long: station.long };
         }
@@ -143,7 +143,7 @@ angular.module('restaurantApp')
       newRestaurant.station_id = _.filter($scope.stations, { name: newRestaurant.station })[0].id;
       delete newRestaurant.station;
       if ($scope.editing) {
-        restaurantsService.editRestaurant(newRestaurant.id, newRestaurant).then(function() {
+        restaurants.edit(newRestaurant.id, newRestaurant).then(function() {
           $scope.notification = 'Restaurant updated successfully';
           $scope.loading = false;
           $scope.showForm = false;
@@ -155,7 +155,7 @@ angular.module('restaurantApp')
         });
 
       } else {
-        restaurantsService.createRestaurant(newRestaurant).then(function() {
+        restaurants.create(newRestaurant).then(function() {
           $scope.notification = 'Restaurant created successfully';
           $scope.loading = false;
           $scope.showForm = false;
@@ -184,7 +184,7 @@ angular.module('restaurantApp')
 
     $scope.deleteRestaurant = function(restaurant) {
       $scope.loading = true;
-      restaurantsService.deleteRestaurant(restaurant.id).then(function() {
+      restaurants.delete(restaurant.id).then(function() {
         $scope.scrollTo();
         $scope.notification = 'Restaurant deleted successfully';
         $scope.loading = false;
