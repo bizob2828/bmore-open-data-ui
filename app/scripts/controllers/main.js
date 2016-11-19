@@ -1,5 +1,5 @@
 'use strict';
-
+/*jshint camelcase: false */
 /**
  * @ngdoc function
  * @name restaurantApp.controller:MainCtrl
@@ -8,7 +8,7 @@
  * Controller of the restaurantApp
  */
 angular.module('restaurantApp')
-  .controller('MainCtrl', function ($scope, $http, restaurantsService, NgMap, $filter) {
+  .controller('MainCtrl', function ($scope, $http, restaurantsService, NgMap, $filter, $location, $anchorScroll) {
     var compareByAscending
       , compareByDescending;
 
@@ -19,6 +19,13 @@ angular.module('restaurantApp')
 
     });
 
+    $scope.scrollTo = function(anchor) {
+      var id = $location.hash();
+      $location.hash(anchor || 'top-of-page');
+      $anchorScroll();
+      $location.hash(id);
+    };
+
     $scope.getRestaurants = function(page, station) {
       var id = station ? station.id : undefined;
       $scope.loading = true;
@@ -28,16 +35,18 @@ angular.module('restaurantApp')
         }
 
         $scope.loading = false;
-        $scope.restaurants = data;
-        $scope.columns = Object.keys(data[0]);
+        $scope.restaurants = data.results;
+        $scope.totalCount = data.total_count;
+        $scope.columns = Object.keys(data.results[0]);
         $scope.sortKey = 'name';
         $scope.isDescending = false;
       })
-      .catch(function(err) {
-        console.log(err);
-      })
+      .catch(function() {
+        $scope.scrollTo();
+        $scope.error = 'Unable to retrieve restaurants';
+      });
 
-    }
+    };
 
     NgMap.getMap().then(function(map) {
       $scope.map = map;
@@ -51,7 +60,7 @@ angular.module('restaurantApp')
     $scope.toggleSort = function(key) {
       if (key === $scope.sortKey) {
         $scope.isDescending = !$scope.isDescending;
-        $scope.isDescending ? $scope.restaurants.sort(compareByDescending(key)) : $scope.restaurants.sort(compareByAscending(key));
+        $scope.restaurants.sort($scope.isDescending ? compareByDescending(key) : compareByAscending(key));
       } else {
         $scope.restaurants.sort(compareByDescending(key));
         $scope.isDescending = true;
@@ -109,15 +118,73 @@ angular.module('restaurantApp')
     };
 
     $scope.filterRestaurants = function(station) {
+      $scope.selectedStation = station;
       $scope.getRestaurants($scope.currentPage, station);
     };
 
     $scope.pageChanged = function() {
-      $scope.getRestaurants($scope.currentPage);
+      $scope.getRestaurants($scope.currentPage, $scope.selectedStation);
     };
 
+    $scope.perPage = 100;
     $scope.loading = true;
     $scope.getRestaurants();
+    $scope.showForm = false;
+    $scope.edit = {};
 
+    $scope.hideForm = function() {
+      $scope.showForm = false;
+    };
+
+    $scope.save = function() {
+      $scope.loading = true;
+      var newRestaurant = _.cloneDeep($scope.edit);
+      newRestaurant.station_id = _.filter($scope.stations, { name: newRestaurant.station })[0].id;
+      delete newRestaurant.station;
+      if ($scope.editing) {
+        restaurantsService.editRestaurant(newRestaurant.id, newRestaurant).then(function() {
+          $scope.notification = 'Restaurant updated successfully';
+          $scope.loading = false;
+          $scope.showForm = false;
+          $scope.scrollTo();
+        })
+        .catch(function() {
+          $scope.error = 'Unable to update restaurant';
+        });
+
+      } else {
+        restaurantsService.createRestaurant(newRestaurant).then(function() {
+          $scope.notification = 'Restaurant created successfully';
+          $scope.loading = false;
+          $scope.showForm = false;
+          $scope.scrollTo();
+        })
+        .catch(function() {
+          $scope.error = 'Unable to create restaurant';
+          $scope.scrollTo();
+        });
+      }
+    };
+
+    $scope.editRestaurant = function(restaurant) {
+      $scope.scrollTo('crud-form');
+      $scope.showForm = true;
+      $scope.editing = true;
+      $scope.edit = _.cloneDeep(restaurant);
+      $scope.edit.station = $scope.edit.police_station.name;
+    };
+
+    $scope.deleteRestaurant = function(restaurant) {
+      $scope.loading = true;
+      restaurantsService.deleteRestaurant(restaurant.id).then(function() {
+        $scope.scrollTo();
+        $scope.notification = 'Restaurant deleted successfully';
+        $scope.loading = false;
+      })
+      .catch(function() {
+        $scope.scrollTo();
+        $scope.error = 'Unable to delete restaurant';
+      });
+    };
 
   });

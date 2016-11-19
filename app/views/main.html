@@ -1,3 +1,10 @@
+<div id="top-of-page"</div>
+<div class="alert alert-danger" ng-if="error">
+<strong>Whoa!</strong> {{error}}
+</div>
+<div class="alert alert-success" ng-if="notification">
+  <strong>Yissss!</strong> {{notification}}
+</div>
 <div>
   <div class="overlay-loading" ng-if="loading">
     <div class="inner text-center">
@@ -9,21 +16,47 @@
 
 <div ng-class="{ blur: loading }" class="panel panel-default">
 <div class="panel-heading">
-  <div class="row">
+  <div class="row row-grid">
     <div class="col-sm-6">
-      <label>
-        Filter by Police Station
-        <input type="text" ng-model="selected" uib-typeahead="station.name for station in stations | filter:$viewValue | limitTo:8" class="form-control" typeahead-on-select="filterRestaurants($item)">
-      </label>
+      <label for="station-filter">Filter by Police Station</label>
+        <input id="station-filter" type="text" ng-model="selected" uib-typeahead="station.name for station in stations | filter:$viewValue" class="form-control" typeahead-on-select="filterRestaurants($item)">
     </div>
     <div class="col-sm-6">
-      <button class="btn btn-primary pull-right" id="create-restaurant"><span>Create Restaurant</span></button>
+      <button class="btn btn-primary pull-right" id="create-restaurant" ng-click="showForm = true"><span>Create Restaurant</span></button>
     </div>
   </div>
 </div>
+<div id="crud-form" class="panel">
+  <form name="form" ng-submit="save(form)" ng-if="showForm">
+    <div class="form-group">
+      <label class="label-required">Name</label>
+      <input ng-model="edit.name" name="name" class="form-control" type="text" required>
+    </div>
+    <div class="form-group">
+      <label class="label-required">Address</label>
+      <input ng-model="edit.address" name="address" class="form-control" type="text" required>
+    </div>
+    <div class="form-group">
+      <label class="label-required">Zip Code</label>
+      <input ng-model="edit.zip" name="zip" class="form-control" type="text" required>
+    </div>
+    <div class="form-group">
+      <label class="label-required">Neighborhood</label>
+      <input ng-model="edit.hood" name="hood" class="form-control" type="text" required>
+    </div>
+    <div class="form-group">
+      <label class="label-required">Police Station</label>
+      <input type="text" ng-model="edit.station" uib-typeahead="station.name for station in stations | filter:$viewValue" class="form-control">
+    </div>
+    <div class="form-group">
+      <button type="submit" class="btn btn-primary btn-sm margin-right">Submit</button>
+      <button type="button" class="btn btn-default btn-sm" ng-click="hideForm()">Cancel</button>
+    </div>
+  </form>
+</div>
 <div class="panel-body">
   <div class="row">
-    <ng-map default-style="true" center="{{center.lat}}, {{center.long}}" zoom="13">
+    <ng-map default-style="true" center="{{center.lat}}, {{center.long}}" zoom="15">
       <info-window id="rest-details">
         <div ng-non-bindable="">
           <h5>{{deets.name}}</h5>
@@ -39,10 +72,13 @@
     </ng-map>
   </div>
   <div class="row">
-    <ul uib-pagination total-items="restaurants.length" max-size="100" ng-model="currentPage" ng-change="pageChanged()"></ul>
+    <ul uib-pagination total-items="totalCount" items-per-page="perPage" boundary-links="true" ng-model="currentPage" ng-change="pageChanged()"></ul>
     <table class="table table-striped table-responsive">
       <thead>
         <tr>
+          <th>
+            <span>Actions</span>
+          </th>
           <th ng-repeat="column in columns">
             <span ng-click="toggleSort(column)">
               <span>{{ column }}</span>
@@ -53,6 +89,10 @@
       </thead>
       <tbody class="restaurant-details">
         <tr ng-repeat="restaurant in restaurants">
+          <td>
+            <span ng-click="editRestaurant(restaurant)"><i class="fa fa-pencil-square-o"></i></span>
+            <span ng-click="deleteRestaurant(restaurant)"><i class="fa fa-trash"></i></span>
+          </td>
           <td ng-repeat="value in restaurant">
             <span ng-if="value.name">{{value.name}}</span>
             <span ng-if="!value.name">{{value}}</span>
