@@ -351,18 +351,49 @@ describe('RestaurantsController', function() {
     });
   });
 
-  describe('openEditForm', function() {
+  describe('openEditForm tests', function() {
     it('should showForm with restaurant details', function() {
       var restaurant = { name: 'Bar', police_station: { name: 'South' }};
       createController();
       $scope.scrollTo = sinon.stub();
       $scope.openEditForm(restaurant);
-      $scope.$digest();
       restaurant.station = 'South';
       expect($scope.edit).to.deep.equal(restaurant);
       expect($scope.editing).to.equal(true);
-      expect($scope.showFrom).to.equal(true);
-      expect($scope.scrollTo.args[0]).to.deep.equal([['crud-form']]);
+      expect($scope.showForm).to.equal(true);
+      expect($scope.scrollTo.args[0]).to.deep.equal(['crud-form']);
+    });
+  });
+
+  describe('openNewForm tests', function() {
+    it('should set showForm to true', function() {
+      createController();
+      $scope.openNewForm();
+      expect($scope.edit).to.deep.equal({});
+      expect($scope.showForm).to.equal(true);
+    });
+  });
+
+  describe('deleteRestaurant tests', function() {
+    it('should delete restaurant successfully', function() {
+      restaurantMock.delete.returns($q.when());
+      createController();
+      $scope.deleteRestaurant({ id: 1 });
+      $scope.$digest();
+      expect(restaurantMock.delete.args[0]).to.deep.equal([1]);
+      expect($scope.notification).to.equal('Restaurant deleted successfully');
+      expect($scope.loading).to.equal(false);
+      expect($scope.showForm).to.equal(false);
+
+    });
+
+    it('should display error on unsuccessful delete', function() {
+      restaurantMock.delete.returns($q.reject());
+      createController();
+      $scope.deleteRestaurant({ id: 1 });
+      $scope.$digest();
+      expect($scope.error).to.equal('Unable to delete restaurant');
+      expect($scope.loading).to.equal(false);
     });
 
   });

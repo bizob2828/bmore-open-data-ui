@@ -1,23 +1,20 @@
-Getting Started with AngularJS Presentation
+Mapping Baltimore Restaurants
 ==================
 # Background
-This app demonstrates how easy it is to bootstrap with Yeoman and angular generators.
-
-The code samples leverage services, constants, controllers, views of AngularJS.
-
-Grunt has been set up to serve code, watch for changes and reload, a few sample unit tests with code coverage.
+This is a simple example of taking restaurant and police station data and mapping it on a google map.  There's also a table of paged Baltmiore restaurants.  You can also create new restaurants, edit and delete.
 
 ## Installation
 
 ```
-git clone git@github.com:bizob2828/meetup-angular-app.git
-cd meetup-angular-app
+git clone git@github.com:bizob2828/bmore-open-data-ui.git
+cd bmore-open-data-ui
 npm install && bower install
 ```
 
 ## Start Webserver with LiveReload
+Note: The API must be started, repo found here https://github.com/bizob2828/bmore-open-data-api
 ```
-npm serve
+grunt serve
 ```
 
 ## Run tests

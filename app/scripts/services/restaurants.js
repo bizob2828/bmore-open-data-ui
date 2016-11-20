@@ -1,82 +1,91 @@
 'use strict';
 
 /**
- * @ngdoc overview
- * @name restaurantApp
+ * @ngdoc restaurants service
+ * @name restaurants
  * @description
- * # restaurantApp
+ * # restaurants service
  *
- *bbb Main module of the application.
+ * Interface between API and controller
  */
 angular.module('restaurantApp')
   .factory('restaurants', function($http, $q) {
     delete $http.defaults.headers.common['X-Requested-With'];
-    var service = {};
+    var service = {}
+      , baseUrl = 'http://localhost:3000/api/restaurants';
 
+    /**
+     * Convenience method to make http request and return appropriate data
+     * @param {String} method http method to make(get, post, put, etc)
+     * @param {String} url url of http request
+     * @param {String} returnKey key of object to return
+     * @param {Object} data payload of http request
+     */
+    function makeRequest(method, url, returnKey, data) {
+      var deferred = $q.defer()
+        , config = {
+          url: url,
+          method: method
+        };
+
+      if (data) {
+        config.data = data;
+      }
+
+      $http(config)
+        .then(function(results) {
+          deferred.resolve(_.get(results, returnKey));
+        })
+        .catch(function(err) {
+          deferred.reject(err);
+        });
+
+      return deferred.promise;
+    }
+
+    /**
+     * Retrieves list of restaurants by page, and optionally by police station
+     * @param {Int} pg page number, defaults to 1
+     * @param {Int} stationId id of police station
+     */
     service.all = function(pg, stationId) {
       var deferred = $q.defer()
         , page = pg || 1
-        , url = 'http://localhost:3000/api/restaurants?page=' + page;
+        , url = baseUrl + '?page=' + page;
 
       if(stationId) {
         url += '&station_id=' + stationId;
       }
 
-      $http.get(url)
-        .then(function (results) {
-          deferred.resolve(results.data);
-        })
-        .catch(function (data) {
-          deferred.reject(data);
-        });
-
-      return deferred.promise;
+      return makeRequest('get', url, 'data');
 
     };
 
+    /**
+     * Creates a restaurant
+     * @param {Object} data payload to create restaurant
+     */
     service.create = function(data) {
-      var deferred = $q.defer();
-      $http.post('http://localhost:3000/api/restaurants', data)
-        .then(function (results) {
-          deferred.resolve(results.data.results);
-        })
-        .catch(function (data) {
-          deferred.reject(data);
-        });
-
-      return deferred.promise;
-
+      return makeRequest('post', baseUrl, 'data.results', data);
     };
 
+    /**
+     * Edits a restaurant
+     * @param {Int} id id of restaurant to edit
+     * @param {Object} data payload to change about restaurant
+     */
     service.edit = function(id, data) {
-      var deferred = $q.defer();
-      $http.put('http://localhost:3000/api/restaurants/' + id, data)
-        .then(function (results) {
-          deferred.resolve(results.data.results);
-        })
-        .catch(function (data) {
-          deferred.reject(data);
-        });
-
-      return deferred.promise;
-
+      return makeRequest('put', baseUrl + '/' + id, 'data.results', data);
     };
 
+    /**
+     * Deletes a restaurant
+     * @param {Int} id id of restaurant
+     */
     service.delete = function(id) {
-      var deferred = $q.defer();
-      $http.delete('http://localhost:3000/api/restaurants/' + id)
-        .then(function (results) {
-          console.log(results);
-          deferred.resolve(results);
-        })
-        .catch(function (data) {
-          deferred.reject(data);
-        });
-
-      return deferred.promise;
-
+      return makeRequest('delete', baseUrl + '/' + id, 'data');
     };
 
-      return service;
+    return service;
   });
 
