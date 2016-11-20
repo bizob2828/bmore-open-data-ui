@@ -49,8 +49,7 @@ angular.module('restaurantApp')
      * @param {Int} stationId id of police station
      */
     service.all = function(pg, stationId) {
-      var deferred = $q.defer()
-        , page = pg || 1
+      var page = pg || 1
         , url = baseUrl + '?page=' + page;
 
       if(stationId) {
