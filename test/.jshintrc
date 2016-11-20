@@ -17,6 +17,7 @@
   "unused": true,
   "strict": true,
   "trailing": true,
+  "laxcomma": true
   "smarttabs": true,
   "globals": {
     "after": false,
@@ -24,6 +25,7 @@
     "angular": false,
     "before": false,
     "beforeEach": false,
+    "sinon": false,
     "browser": false,
     "describe": false,
     "expect": false,

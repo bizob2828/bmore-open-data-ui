@@ -1,24 +1,138 @@
 'use strict';
 /*jshint camelcase: false */
+
 /**
  * @ngdoc function
- * @name restaurantApp.controller:MainCtrl
+ * @name restaurantApp.controller:RestaurantsCtrl
  * @description
- * # MainCtrl
+ * # RestaurantsCtrl
  * Controller of the restaurantApp
  */
 angular.module('restaurantApp')
-  .controller('RestaurantsCtrl', function ($scope, $http, restaurants, stations, NgMap, $filter, $location, $anchorScroll) {
-    var compareByAscending
-      , compareByDescending;
+  .controller('RestaurantsCtrl', function ($scope, restaurants, stations, NgMap, $location, $anchorScroll) {
 
+    /**
+     * Initializes page by fetching restaurants, police stations, map instance
+     */
+    function init() {
+      $scope.perPage = 100;
+      $scope.showForm = false;
+      $scope.edit = {};
+      $scope.getRestaurants();
+      $scope.getStations();
+      $scope.getMap();
 
-    stations.all().then(function(data) {
-      $scope.center = { lat: data[0].lat, long: data[0].long };
-      $scope.stations = data;
+    }
 
-    });
+    /**
+     * Convenience method to scroll to top of page and show error
+     *
+     * @param {String} msg error message to display
+     */
+    function handleError(msg) {
+      $scope.scrollTo();
+      $scope.loading = false;
+      $scope.error = msg;
+    }
 
+    /**
+     * Convenience method to scroll to top and show success notificaiton
+     * @param {String} msg notification to display
+     */
+    function handleSuccess(msg) {
+      $scope.scrollTo();
+      $scope.loading = false;
+      $scope.showForm = false;
+      $scope.notification = msg;
+    }
+
+    /**
+     * Clones restaurant and looks up police station
+     * @param {Object} restaurant restaurant to clone
+     * @return {Object} cloned restaurant
+     */
+    function cloneRestaurant(restaurant) {
+      var newRestaurant = _.cloneDeep(restaurant);
+      newRestaurant.station_id = _.filter($scope.stations, { name: newRestaurant.station })[0].id;
+      delete newRestaurant.station;
+      return newRestaurant;
+    }
+
+    /**
+     * Returns a sorting function on the given key for sorting results in a desc order
+     *
+     * @param key The sort key
+     *
+     * @returns {Function} A sort function to sort by the key
+     */
+    function compareByDescending(key) {
+      return function(a, b) {
+        if(angular.isObject(a[key])) {
+          return b[key].name.localeCompare(a[key].name);
+        }
+        //If a string use language collation
+        else if (angular.isString(a[key])) {
+          return b[key].localeCompare(a[key]);
+        } else {
+          return b[key] - a[key];
+        }
+      };
+    }
+
+    /**
+     * Returns a sorting function on the given key for sorting results in an asc order
+     *
+     * @param key The sort key
+     *
+     * @returns {Function} A sort function to sort by the key
+     */
+    function compareByAscending(key) {
+      return function(a, b) {
+        if(angular.isObject(a[key])) {
+          return a[key].name.localeCompare(b[key].name);
+        }
+        //If a string use language collation
+        else if (angular.isString(b[key])) {
+          return a[key].localeCompare(b[key]);
+        } else {
+          return a[key] - b[key];
+        }
+      };
+    }
+
+    /**
+     * Gets a google map instance, sets on scope
+     *
+     */
+    $scope.getMap = function() {
+      $scope.loading = true;
+      NgMap.getMap().then(function(map) {
+        $scope.map = map;
+      })
+      .catch(function() {
+        handleError('Unable to load map');
+      });
+    };
+
+    /**
+     * Retrieves police stations and sets the center of map
+     */
+    $scope.getStations = function() {
+      stations.all().then(function(data) {
+        $scope.center = { lat: data[0].lat, long: data[0].long };
+        $scope.stations = data;
+        $scope.loading = false;
+      })
+      .catch(function() {
+        handleError('Unable to retrieve police stations');
+      });
+    };
+
+    /**
+     * Scrolls to a location on page, defaults to top
+     *
+     * @param {String} anchor name of anchor to scroll to
+     */
     $scope.scrollTo = function(anchor) {
       var id = $location.hash();
       $location.hash(anchor || 'top-of-page');
@@ -26,6 +140,12 @@ angular.module('restaurantApp')
       $location.hash(id);
     };
 
+    /**
+     * Retrieves restaurants, sets the table data
+     *
+     * @param {Int} page # of page to retrieve from API
+     * @param {Int} station id of police station to filter collection
+     */
     $scope.getRestaurants = function(page, station) {
       var id = station ? station.id : undefined;
       $scope.loading = true;
@@ -42,22 +162,24 @@ angular.module('restaurantApp')
         $scope.isDescending = false;
       })
       .catch(function() {
-        $scope.scrollTo();
-        $scope.error = 'Unable to retrieve restaurants';
-        $scope.loading = false;
+        handleError('Unable to retrieve restaurants');
       });
 
     };
 
-    NgMap.getMap().then(function(map) {
-      $scope.map = map;
-    });
-
+    /**
+     * Sets the appropriate sort key based on what was clicked
+     * @param {String} key value of the column name that was clicked
+     */
     $scope.setSort = function(key) {
       var active = key === $scope.sortKey;
       return 'fa-sort-amount-' + (active && !$scope.isDescending ? 'asc' : 'desc') + ( active ? ' active' : '');
     };
 
+    /**
+     * Toggles the sorting between asc/desc
+     * @param {String} key value of column that is being sorted
+     */
     $scope.toggleSort = function(key) {
       if (key === $scope.sortKey) {
         $scope.isDescending = !$scope.isDescending;
@@ -72,104 +194,67 @@ angular.module('restaurantApp')
     };
 
     /**
-     * Returns a sorting function on the given key for sorting results in a desc order
-     *
-     * @param key The sort key
-     *
-     * @returns {Function} A sort function to sort by the key
+     * Pops the info window on the map to display restaurant details
+     * @param {Function} e event that occurred
+     * @param {Object} restaurant object that was clicked on map
      */
-    compareByDescending = function(key) {
-      return function(a, b) {
-        if(angular.isObject(a[key])) {
-          return b[key].name.localeCompare(a[key].name);
-        }
-        //If a string use language collation
-        else if (angular.isString(a[key])) {
-          return b[key].localeCompare(a[key]);
-        } else {
-          return b[key] - a[key];
-        }
-      };
-    };
-
-    /**
-     * Returns a sorting function on the given key for sorting results in an asc order
-     *
-     * @param key The sort key
-     *
-     * @returns {Function} A sort function to sort by the key
-     */
-    compareByAscending = function(key) {
-      return function(a, b) {
-        if(angular.isObject(a[key])) {
-          return a[key].name.localeCompare(b[key].name);
-        }
-        //If a string use language collation
-        else if (angular.isString(b[key])) {
-          return a[key].localeCompare(b[key]);
-        } else {
-          return a[key] - b[key];
-        }
-      };
-    };
-
     $scope.showDetails = function(e, restaurant) {
         $scope.deets = restaurant;
         $scope.map.showInfoWindow('rest-details', restaurant.id.toString());
     };
 
+    /**
+     * Retrieves a list of restaurants filtered by police station
+     * @param {Object} station police station object
+     */
     $scope.filterRestaurants = function(station) {
       $scope.selectedStation = station;
       $scope.getRestaurants($scope.currentPage, station);
     };
 
+    /**
+     * Server side paging that calls the getRestaurants
+     */
     $scope.pageChanged = function() {
       $scope.getRestaurants($scope.currentPage, $scope.selectedStation);
     };
 
-    $scope.perPage = 100;
-    $scope.loading = true;
-    $scope.getRestaurants();
-    $scope.showForm = false;
-    $scope.edit = {};
-
+    /**
+     * Hides the restaurant form
+     */
     $scope.hideForm = function() {
       $scope.showForm = false;
     };
 
+    /**
+     * Saves the restaurant, it will create/edit depending on which mode
+     */
     $scope.save = function() {
       $scope.loading = true;
-      var newRestaurant = _.cloneDeep($scope.edit);
-      newRestaurant.station_id = _.filter($scope.stations, { name: newRestaurant.station })[0].id;
-      delete newRestaurant.station;
+      var newRestaurant = cloneRestaurant($scope.edit);
       if ($scope.editing) {
         restaurants.edit(newRestaurant.id, newRestaurant).then(function() {
-          $scope.notification = 'Restaurant updated successfully';
-          $scope.loading = false;
-          $scope.showForm = false;
-          $scope.scrollTo();
+          handleSuccess('Restaurant updated successfully');
         })
         .catch(function() {
-          $scope.error = 'Unable to update restaurant';
-          $scope.loading = false;
+          handleError('Unable to update restaurant');
         });
 
       } else {
         restaurants.create(newRestaurant).then(function() {
-          $scope.notification = 'Restaurant created successfully';
-          $scope.loading = false;
-          $scope.showForm = false;
-          $scope.scrollTo();
+          handleSuccess('Restaurant created successfully');
         })
         .catch(function() {
-          $scope.error = 'Unable to create restaurant';
-          $scope.loading = false;
-          $scope.scrollTo();
+          handleError('Unable to create restaurant');
         });
       }
     };
 
-    $scope.editRestaurant = function(restaurant) {
+    /**
+     * Opens form with pre-filled data to edit restaurant
+     * @param {Object} restaurant restaurant object to edit
+     */
+    $scope.openEditForm = function(restaurant) {
       $scope.scrollTo('crud-form');
       $scope.showForm = true;
       $scope.editing = true;
@@ -177,23 +262,29 @@ angular.module('restaurantApp')
       $scope.edit.station = $scope.edit.police_station.name;
     };
 
-    $scope.createNew = function() {
+    /**
+     * Opens form to create a restaurant
+     */
+    $scope.openNewForm = function() {
       $scope.edit = {};
       $scope.showForm = true;
     };
 
+    /**
+     * Deletes a restaurant
+     * @param {Object} restaurant restaurant object
+     */
     $scope.deleteRestaurant = function(restaurant) {
       $scope.loading = true;
       restaurants.delete(restaurant.id).then(function() {
-        $scope.scrollTo();
-        $scope.notification = 'Restaurant deleted successfully';
-        $scope.loading = false;
+        handleSuccess('Restaurant deleted successfully');
       })
       .catch(function() {
-        $scope.scrollTo();
-        $scope.error = 'Unable to delete restaurant';
-        $scope.loading = false;
+        handleError('Unable to delete restaurant');
       });
     };
+
+    // load initial page
+    init();
 
   });

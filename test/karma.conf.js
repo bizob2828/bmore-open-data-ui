@@ -14,17 +14,22 @@ module.exports = function(config) {
     basePath: '../',
 
     // testing framework to use (jasmine/mocha/qunit/...)
-    frameworks: ['mocha', 'chai'],
+    frameworks: ['mocha', 'chai', 'sinon-chai'],
 
     // list of files / patterns to load in the browser
     files: [
+      'bower_components/jquery/dist/jquery.js',
+      'bower_components/json3/lib/json3.js',
+      'bower_components/bootstrap/dist/js/bootstrap.js',
       'bower_components/angular/angular.js',
       'bower_components/angular-mocks/angular-mocks.js',
       'bower_components/angular-resource/angular-resource.js',
       'bower_components/angular-route/angular-route.js',
       'bower_components/angular-sanitize/angular-sanitize.js',
+      'bower_components/ngmap/build/scripts/ng-map.js',
+      'bower_components/lodash/lodash.js',
+      'bower_components/angular-bootstrap/ui-bootstrap-tpls.js',
       'app/scripts/**/*.js',
-      'test/mock/**/*.js',
       'test/spec/**/*.js'
     ],
 
@@ -52,10 +57,10 @@ module.exports = function(config) {
     // Which plugins to enable
     plugins: [
       'karma-phantomjs-launcher',
-      'karma-jasmine',
       'karma-mocha',
       'karma-chai',
-      'karma-coverage'
+      'karma-coverage',
+      'karma-sinon-chai'
     ],
 
     reporters: ['coverage', 'progress'],

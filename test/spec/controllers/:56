@@ -1,0 +1,72 @@
+'use strict';
+describe('RestaurantsController', function() {
+  var $scope
+    , $q
+    , $controller
+    , restaurantMock
+    , stationMock
+    , mapMock
+    , locationMock
+    , anchorMock;
+
+  function createController() {
+    $controller('RestaurantsController', {
+      $scope: $scope,
+      restaurants: restaurantMock,
+      stations: stationMock,
+      NgMap: mapMock,
+      $location: locationMock,
+      $anchorScroll: anchorMock
+    });
+
+    $scope.$digest();
+
+  }
+
+  beforeEach(module('restaurantApp'));
+
+  beforeEach(inject(function(_$controller, $rootScope, _$q_) {
+    $scope = $rootScope.$new();
+    $q = _$q_;
+    $controller = _$controller_;
+
+    restaurantMock = {
+      all: sinon.stub(),
+      edit: sinon.stub(),
+      create: sinon.stub(),
+      delete: sinon.stub()
+    };
+
+    stationMock = {
+      all: sinon.stub()
+    };
+
+    mapMock = {
+      getMap: sinon.stub()
+    };
+
+    locationMock = {
+      hash: sinon.stub()
+    };
+
+    anchorMock = sinon.stub();
+
+  }));
+
+  describe('init tests', function() {
+    it('should init successfully', () {
+      $scope.getRestaurants = sinon.stub();
+      $scope.getStations = sinon.stub();
+      createController();
+      expect($scope.getRestaurants.callCount).to.equal(1);
+      expect($scope.getStations.callCount).to.equal(1);
+      expect($scope.showForm).to.equal(false);
+      expect($scope.edit).to.equal({});
+      expect($scope.loading).to.equal(true);
+      expect($scope.perPage).to.equal(100);
+
+    });
+
+  });
+
+});
