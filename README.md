@@ -14,10 +14,10 @@ npm install && bower install
 ## Start Webserver with LiveReload
 Note: The API must be started, repo found here https://github.com/bizob2828/bmore-open-data-api
 ```
-grunt serve
+npm run serve
 ```
 
 ## Run tests
 ```
-grunt test
+npm test
 ```
