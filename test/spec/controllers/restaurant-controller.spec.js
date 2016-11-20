@@ -17,7 +17,7 @@ describe('RestaurantsController', function() {
     ]
     , anchorMock;
 
-  function createController(noDigest) {
+  function createController() {
     $controller('RestaurantsCtrl', {
       $scope: $scope,
       restaurants: restaurantMock,
@@ -27,10 +27,7 @@ describe('RestaurantsController', function() {
       $anchorScroll: anchorMock
     });
 
-    if(!noDigest) {
-      console.log('here');
-      $scope.$digest();
-    }
+    $scope.$digest();
 
   }
 
