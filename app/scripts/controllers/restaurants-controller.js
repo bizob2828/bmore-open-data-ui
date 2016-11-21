@@ -58,6 +58,12 @@ angular.module('restaurantApp')
       return newRestaurant;
     }
 
+    function startLoad() {
+      $scope.error = undefined;
+      $scope.notification = undefined;
+      $scope.loading = true;
+    }
+
     /**
      * Returns a sorting function on the given key for sorting results in a desc order
      *
@@ -148,18 +154,19 @@ angular.module('restaurantApp')
      */
     $scope.getRestaurants = function(page, station) {
       var id = station ? station.id : undefined;
+      startLoad();
       $scope.loading = true;
       restaurants.all(page, id).then(function(data) {
         if (station) {
           $scope.center = { lat: station.lat, long: station.long };
         }
 
-        $scope.loading = false;
         $scope.restaurants = data.results;
         $scope.totalCount = data.total_count;
         $scope.columns = Object.keys(data.results[0]);
         $scope.sortKey = 'name';
         $scope.isDescending = false;
+        $scope.loading = false;
       })
       .catch(function() {
         handleError('Unable to retrieve restaurants');
@@ -230,10 +237,11 @@ angular.module('restaurantApp')
      * Saves the restaurant, it will create/edit depending on which mode
      */
     $scope.save = function() {
-      $scope.loading = true;
+      startLoad();
       var newRestaurant = cloneRestaurant($scope.edit);
       if ($scope.editing) {
         restaurants.edit(newRestaurant.id, newRestaurant).then(function() {
+          $scope.editing = false;
           handleSuccess('Restaurant updated successfully');
         })
         .catch(function() {
@@ -275,7 +283,7 @@ angular.module('restaurantApp')
      * @param {Object} restaurant restaurant object
      */
     $scope.deleteRestaurant = function(restaurant) {
-      $scope.loading = true;
+      startLoad();
       restaurants.delete(restaurant.id).then(function() {
         handleSuccess('Restaurant deleted successfully');
       })
