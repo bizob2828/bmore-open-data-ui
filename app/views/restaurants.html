@@ -90,7 +90,7 @@
       <tbody class="restaurant-details">
         <tr ng-repeat="restaurant in restaurants">
           <td>
-            <span ng-click="editRestaurant(restaurant)"><i class="fa fa-pencil-square-o"></i></span>
+            <span ng-click="openEditForm(restaurant)"><i class="fa fa-pencil-square-o"></i></span>
             <span ng-click="deleteRestaurant(restaurant)"><i class="fa fa-trash"></i></span>
           </td>
           <td ng-repeat="value in restaurant">
